@@ -1,0 +1,358 @@
+# Урок 9: DataStore — сохранение прогресса
+
+## Что такое DataStore?
+
+DataStore — это облачное хранилище Roblox. Оно позволяет сохранять данные игрока (монеты, уровень, предметы) между сессиями.
+
+Без DataStore: игрок накопил 1000 монет, вышел из игры, зашёл снова — у него 0 монет.
+
+С DataStore: игрок накопил 1000 монет, вышел, зашёл через неделю — у него всё ещё 1000 монет.
+
+Данные хранятся на серверах Roblox и привязаны к аккаунту игрока.
+
+## Как это работает
+
+1. Игрок заходит в игру → загружаем его данные из DataStore
+2. Игрок играет → данные меняются в памяти
+3. Игрок выходит → сохраняем данные в DataStore
+4. Игрок заходит снова → данные загружаются
+
+## Создание DataStore
+
+DataStore работает только в серверных скриптах (ServerScriptService).
+
+Структура:
+
+local DataStoreService = game:GetService("DataStoreService")
+local myDataStore = DataStoreService:GetDataStore("ИмяХранилища")
+
+## Сохранение данных
+
+local DataStoreService = game:GetService("DataStoreService")
+local coinStore = DataStoreService:GetDataStore("Coins")
+
+-- Сохраняем монеты игрока
+local function saveCoins(player, amount)
+    local key = player.UserId  -- уникальный ключ = ID игрока
+    local success, errorMessage = pcall(function()
+        coinStore:SetAsync(key, amount)
+    end)
+    
+    if success then
+        print("Сохранено: " .. amount .. " монет для " .. player.Name)
+    else
+        warn("Ошибка сохранения: " .. errorMessage)
+    end
+end
+
+## Загрузка данных
+
+local function loadCoins(player)
+    local key = player.UserId
+    local coins = 0  -- значение по умолчанию
+    
+    local success, data = pcall(function()
+        return coinStore:GetAsync(key)
+    end)
+    
+    if success and data then
+        coins = data
+        print("Загружено: " .. coins .. " монет для " .. player.Name)
+    else
+        print("Новый игрок: " .. player.Name .. ", выдаём 100 монет")
+        coins = 100  -- стартовый бонус
+    end
+    
+    return coins
+end
+
+## Полный пример сохранения монет
+
+Вставь в ServerScriptService:
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local coinStore = DataStoreService:GetDataStore("PlayerCoins")
+
+-- Таблица для хранения монет во время игры
+local playerCoins = {}
+
+-- Загрузка при заходе
+Players.PlayerAdded:Connect(function(player)
+    local key = player.UserId
+    local coins = 100  -- по умолчанию
+    
+    local success, data = pcall(function()
+        return coinStore:GetAsync(key)
+    end)
+    
+    if success and data then
+        coins = data
+    end
+    
+    playerCoins[player.UserId] = coins
+    print(player.Name .. " зашёл. Монет: " .. coins)
+end)
+
+-- Сохранение при выходе
+Players.PlayerRemoving:Connect(function(player)
+    local key = player.UserId
+    local coins = playerCoins[player.UserId]
+    
+    if coins then
+        local success, errorMessage = pcall(function()
+            coinStore:SetAsync(key, coins)
+        end)
+        
+        if success then
+            print("Сохранено для " .. player.Name .. ": " .. coins .. " монет")
+        else
+            warn("Ошибка сохранения: " .. errorMessage)
+        end
+    end
+    
+    playerCoins[player.UserId] = nil  -- очищаем память
+end)
+
+## Сохранение таблицы (несколько значений)
+
+Можно сохранять целую таблицу с разными данными:
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local dataStore = DataStoreService:GetDataStore("PlayerData")
+
+local playerData = {}
+
+Players.PlayerAdded:Connect(function(player)
+    local key = player.UserId
+    
+    local success, data = pcall(function()
+        return dataStore:GetAsync(key)
+    end)
+    
+    if success and data then
+        playerData[player.UserId] = data
+    else
+        -- Данные по умолчанию для нового игрока
+        playerData[player.UserId] = {
+            coins = 100,
+            level = 1,
+            xp = 0,
+            items = {"Меч"}
+        }
+    end
+    
+    local d = playerData[player.UserId]
+    print(player.Name .. ": уровень " .. d.level .. ", монет " .. d.coins)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    local key = player.UserId
+    local data = playerData[player.UserId]
+    
+    if data then
+        pcall(function()
+            dataStore:SetAsync(key, data)
+        end)
+    end
+    
+    playerData[player.UserId] = nil
+end)
+
+Как обратиться к данным во время игры:
+
+local function addCoins(player, amount)
+    local data = playerData[player.UserId]
+    if data then
+        data.coins = data.coins + amount
+        print(player.Name .. " получил " .. amount .. " монет. Всего: " .. data.coins)
+    end
+end
+
+local function levelUp(player)
+    local data = playerData[player.UserId]
+    if data then
+        data.level = data.level + 1
+        print(player.Name .. " повысил уровень до " .. data.level)
+    end
+end
+
+## Автосохранение каждые 60 секунд
+
+Иногда игроки вылетают без сохранения. Лучше сохранять периодически:
+
+-- Автосохранение каждую минуту
+task.spawn(function()
+    while true do
+        wait(60)
+        for _, player in ipairs(Players:GetPlayers()) do
+            local key = player.UserId
+            local data = playerData[player.UserId]
+            if data then
+                pcall(function()
+                    dataStore:SetAsync(key, data)
+                end)
+            end
+        end
+        print("Автосохранение выполнено")
+    end
+end)
+
+## UpdateAsync — безопасное обновление
+
+SetAsync просто перезаписывает данные. UpdateAsync позволяет прочитать, изменить и сохранить одной операцией:
+
+local function addCoinsSafe(player, amount)
+    local key = player.UserId
+    
+    local success, newValue = pcall(function()
+        return coinStore:UpdateAsync(key, function(oldValue)
+            oldValue = oldValue or 0  -- если nil (новый игрок)
+            return oldValue + amount
+        end)
+    end)
+    
+    if success then
+        print(player.Name .. " получил " .. amount .. " монет. Всего: " .. newValue)
+    end
+end
+
+UpdateAsync надёжнее чем SetAsync, особенно если несколько скриптов меняют одни данные.
+
+## Важные правила DataStore
+
+1. Ключ — строка. Обычно используют player.UserId (уникальный ID игрока)
+2. Данные сохраняются не мгновенно — может быть задержка 1-2 секунды
+3. Есть лимиты: 60 запросов в секунду на один DataStore
+4. Всегда используй pcall — сервер может не ответить
+5. Не сохраняй слишком часто (не каждую секунду)
+6. Не сохраняй огромные данные (лимит 4 МБ на ключ)
+
+## Ключ — строка, не число
+
+local key = tostring(player.UserId)  -- ПРАВИЛЬНО
+local key = player.UserId             -- может не сработать
+
+Лучше всегда превращать в строку.
+
+## Проверка на ошибки (pcall)
+
+Всегда оборачивай запросы к DataStore в pcall:
+
+local success, result = pcall(function()
+    return dataStore:GetAsync(key)
+end)
+
+if success then
+    -- используй result
+else
+    -- произошла ошибка, result содержит сообщение
+    warn("Ошибка DataStore: " .. result)
+end
+
+Без pcall ошибка вызовет краш скрипта.
+
+## Частые ошибки
+
+Ошибка 1: забыл pcall
+dataStore:GetAsync(key)  -- ОШИБКА! Если сервер недоступен — скрипт упадёт
+
+Ошибка 2: сохранение в LocalScript
+DataStore работает ТОЛЬКО в серверных скриптах!
+
+Ошибка 3: сохранение слишком часто
+Не сохраняй каждый раз когда игрок получает монету. Сохраняй раз в минуту или при выходе.
+
+Ошибка 4: ключ не строка
+local key = player.UserId  -- может не работать
+local key = tostring(player.UserId)  -- ПРАВИЛЬНО
+
+Ошибка 5: сохранение огромных данных
+Не сохраняй целые карты или модели. Только числа, строки, небольшие таблицы.
+
+## Задания для практики
+
+Задание 1
+Сделай сохранение монет: при выходе сохранять, при заходе загружать.
+
+Задание 2
+Добавь стартовый бонус 50 монет для новых игроков.
+
+Задание 3
+Сделай сохранение уровня и опыта (level и xp).
+
+Задание 4
+Сделай автосохранение каждые 30 секунд.
+
+Задание 5
+Сделай таблицу лидеров: сохраняй лучший счёт игрока.
+
+## Готовый код для запуска
+
+Вставь в ServerScriptService:
+
+-- Урок 9: DataStore
+
+local DataStoreService = game:GetService("DataStoreService")
+local Players = game:GetService("Players")
+local dataStore = DataStoreService:GetDataStore("PlayerData")
+
+print("========== УРОК 9: DATASTORE ==========")
+
+local playerData = {}
+
+-- Загрузка при заходе
+Players.PlayerAdded:Connect(function(player)
+    local key = tostring(player.UserId)
+    
+    local success, data = pcall(function()
+        return dataStore:GetAsync(key)
+    end)
+    
+    if success and data then
+        playerData[player.UserId] = data
+        print(player.Name .. " зашёл. Уровень: " .. data.level .. ", Монет: " .. data.coins)
+    else
+        playerData[player.UserId] = {
+            coins = 100,
+            level = 1,
+            xp = 0
+        }
+        print(player.Name .. " — новый игрок! Выдано 100 монет.")
+    end
+end)
+
+-- Сохранение при выходе
+Players.PlayerRemoving:Connect(function(player)
+    local key = tostring(player.UserId)
+    local data = playerData[player.UserId]
+    
+    if data then
+        pcall(function()
+            dataStore:SetAsync(key, data)
+        end)
+        print("Сохранено для " .. player.Name)
+    end
+    
+    playerData[player.UserId] = nil
+end)
+
+-- Автосохранение каждые 60 секунд
+task.spawn(function()
+    while true do
+        wait(60)
+        for _, player in ipairs(Players:GetPlayers()) do
+            local data = playerData[player.UserId]
+            if data then
+                pcall(function()
+                    dataStore:SetAsync(tostring(player.UserId), data)
+                end)
+            end
+        end
+        print("Автосохранение...")
+    end
+end)
+
+print("Система сохранения готова!")
+print("========== КОНЕЦ УРОКА 9 ==========")
