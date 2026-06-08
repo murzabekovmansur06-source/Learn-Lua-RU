@@ -1,0 +1,354 @@
+# Урок 4: Функции
+
+## Что такое функция?
+
+Функция — это блок кода с именем. Ты пишешь его один раз, а вызываешь сколько угодно раз.
+
+Представь что у тебя есть робот. Ты говоришь ему "сделай бутерброд" и он делает. Тебе не нужно каждый раз объяснять как — ты просто даёшь команду. Функция — это такая команда.
+
+## Как создать функцию
+
+Структура:
+
+local function имя(аргументы)
+    -- код который выполняется при вызове
+    return результат  -- не обязательно
+end
+
+Пример самой простой функции:
+
+local function sayHello()
+    print("Привет!")
+end
+
+sayHello()  -- вызовет функцию, выведет: Привет!
+sayHello()  -- ещё раз: Привет!
+sayHello()  -- и ещё: Привет!
+
+## Аргументы — данные которые передаём в функцию
+
+Аргументы — это значения которые мы даём функции чтобы она с ними работала:
+
+local function greet(name)
+    print("Привет, " .. name .. "!")
+end
+
+greet("Анна")    -- Привет, Анна!
+greet("Максим")  -- Привет, Максим!
+greet("Олег")    -- Привет, Олег!
+
+Здесь name — это аргумент. При вызове greet("Анна") внутри функции name становится "Анна".
+
+Можно передавать несколько аргументов:
+
+local function introduce(name, age, city)
+    print("Имя: " .. name)
+    print("Возраст: " .. age)
+    print("Город: " .. city)
+end
+
+introduce("Анна", 25, "Москва")
+
+Результат:
+Имя: Анна
+Возраст: 25
+Город: Москва
+
+## return — возврат результата
+
+Функция может не только делать что-то, но и возвращать результат:
+
+local function add(a, b)
+    return a + b
+end
+
+local result = add(5, 3)
+print(result)  -- 8
+
+print(add(10, 20))  -- 30
+print(add(100, 200))  -- 300
+
+return означает "верни это значение тому кто вызвал функцию".
+
+Ещё пример:
+
+local function square(x)
+    return x * x
+end
+
+print(square(5))   -- 25
+print(square(10))  -- 100
+
+После return функция сразу завершается:
+
+local function test()
+    print("Это выведется")
+    return 42
+    print("Это НЕ выведется")
+end
+
+print(test())  -- Это выведется, потом 42
+
+## Функции которые проверяют что-то (возвращают true/false)
+
+Очень полезный тип функций:
+
+local function isEven(n)
+    return n % 2 == 0
+end
+
+print(isEven(4))   -- true
+print(isEven(7))   -- false
+
+if isEven(10) then
+    print("Чётное!")
+end
+
+Ещё пример:
+
+local function canDrive(age, hasLicense)
+    return age >= 18 and hasLicense == true
+end
+
+if canDrive(20, true) then
+    print("Можно за руль")
+else
+    print("Нельзя")
+end
+
+## Функции для математики
+
+local function max(a, b)
+    if a > b then
+        return a
+    else
+        return b
+    end
+end
+
+print(max(10, 20))  -- 20
+print(max(100, 50))  -- 100
+
+local function min(a, b)
+    if a < b then
+        return a
+    else
+        return b
+    end
+end
+
+print(min(10, 20))  -- 10
+
+## Функции которые работают с текстом
+
+local function repeatWord(word, times)
+    local result = ""
+    for i = 1, times do
+        result = result .. word
+    end
+    return result
+end
+
+print(repeatWord("Привет", 3))  -- ПриветПриветПривет
+print(repeatWord("a", 5))       -- aaaaa
+
+## Функции без return
+
+Если в функции нет return, она возвращает nil (ничего):
+
+local function printSum(a, b)
+    print(a + b)
+end
+
+local result = printSum(5, 3)  -- выведет 8
+print(result)  -- nil (потому что нет return)
+
+## Локальные переменные внутри функции
+
+Переменные внутри функции живут только внутри неё:
+
+local function test()
+    local x = 10
+    print(x)
+end
+
+test()     -- 10
+print(x)   -- nil! x существует только внутри test()
+
+## Функция вызывает другую функцию
+
+Можно делать цепочки вызовов:
+
+local function double(x)
+    return x * 2
+end
+
+local function triple(x)
+    return x * 3
+end
+
+local function doubleThenTriple(x)
+    local doubled = double(x)
+    return triple(doubled)
+end
+
+print(doubleThenTriple(5))  -- 30 (5*2=10, 10*3=30)
+
+## Зачем нужны функции
+
+1. Не повторять один и тот же код
+2. Разбить большую задачу на маленькие
+3. Легче тестировать и исправлять
+4. Код становится понятнее
+
+## Частые ошибки
+
+Ошибка 1: забыл local function
+function add(a, b)         -- работает но не рекомендуется
+local function add(a, b)   -- ПРАВИЛЬНО
+
+Ошибка 2: забыл return
+local function add(a, b)
+    a + b                  -- ОШИБКА! Ничего не возвращает
+end
+
+Ошибка 3: перепутал порядок аргументов
+local function divide(a, b)
+    return a / b
+end
+print(divide(3, 10))  -- 0.3 (3 разделить на 10)
+print(divide(10, 3))  -- 3.333 (10 разделить на 3)
+
+Ошибка 4: не совпадает имя при вызове
+local function calculateSum(x, y)
+    return x + y
+end
+print(calculateSum(5, 3))  -- ПРАВИЛЬНО
+print(calcSum(5, 3))       -- ОШИБКА! Другое имя
+
+## Задания для практики
+
+Задание 1
+Напиши функцию multiply(a, b) которая умножает два числа и возвращает результат.
+
+Задание 2
+Напиши функцию isEven(n) которая возвращает true если число чётное, и false если нет.
+
+Задание 3
+Напиши функцию calculatePrice(quantity, pricePerUnit) которая считает общую стоимость.
+
+Задание 4
+Напиши функцию getStatus(health) которая возвращает "Живой" если health > 0, и "Мёртв" если 0 или меньше.
+
+Задание 5
+Напиши функцию factorial(n) которая считает факториал числа (используй цикл внутри функции).
+
+Задание 6
+Напиши функцию repeatText(text, count) которая повторяет текст указанное количество раз и возвращает результат.
+
+Задание 7
+Напиши функцию celsiusToFahrenheit(c) которая переводит градусы Цельсия в Фаренгейты (формула: F = C * 9/5 + 32).
+
+## Готовый код для запуска
+
+Скопируй в Roblox Studio:
+
+-- Урок 4: Функции
+
+print("========== УРОК 4: ФУНКЦИИ ==========")
+print("")
+
+-- Простая функция
+local function sayHello()
+    print("Привет!")
+end
+sayHello()
+print("")
+
+-- Функция с аргументом
+local function greet(name)
+    print("Привет, " .. name .. "!")
+end
+greet("Анна")
+greet("Максим")
+print("")
+
+-- Функция с return
+local function add(a, b)
+    return a + b
+end
+print("5 + 3 = " .. add(5, 3))
+print("10 + 20 = " .. add(10, 20))
+print("")
+
+-- Проверка чётности
+local function isEven(n)
+    return n % 2 == 0
+end
+print("4 чётное? " .. tostring(isEven(4)))
+print("7 чётное? " .. tostring(isEven(7)))
+print("")
+
+-- Большее из двух
+local function max(a, b)
+    if a > b then
+        return a
+    else
+        return b
+    end
+end
+print("Большее из 10 и 20: " .. max(10, 20))
+print("Большее из 100 и 50: " .. max(100, 50))
+print("")
+
+-- Повтор текста
+local function repeatText(text, count)
+    local result = ""
+    for i = 1, count do
+        result = result .. text
+    end
+    return result
+end
+print(repeatText("Ха", 3))
+print("")
+
+-- Факториал
+local function factorial(n)
+    local result = 1
+    for i = 1, n do
+        result = result * i
+    end
+    return result
+end
+print("Факториал 5 = " .. factorial(5))
+print("Факториал 10 = " .. factorial(10))
+print("")
+
+-- Статус по здоровью
+local function getStatus(health)
+    if health > 50 then
+        return "Отлично"
+    elseif health > 25 then
+        return "Средне"
+    elseif health > 0 then
+        return "Плохо"
+    else
+        return "Мёртв"
+    end
+end
+print("Здоровье 100: " .. getStatus(100))
+print("Здоровье 30: " .. getStatus(30))
+print("Здоровье 10: " .. getStatus(10))
+print("Здоровье 0: " .. getStatus(0))
+print("")
+
+-- Цельсий в Фаренгейт
+local function celsiusToFahrenheit(c)
+    return c * 9 / 5 + 32
+end
+print("0°C = " .. celsiusToFahrenheit(0) .. "°F")
+print("100°C = " .. celsiusToFahrenheit(100) .. "°F")
+print("25°C = " .. celsiusToFahrenheit(25) .. "°F")
+
+print("")
+print("========== КОНЕЦ УРОКА 4 ==========")
