@@ -1,0 +1,258 @@
+# Урок 6: Первый скрипт в Roblox
+
+## Что такое Roblox Studio?
+
+Roblox Studio — это программа где делают игры для Roblox. В ней ты можешь:
+- Создавать объекты (кубы, сферы, модели)
+- Писать скрипты на Lua
+- Тестировать игру сразу же
+
+## Как открыть Roblox Studio
+
+1. Зайди на https://create.roblox.com
+2. Нажми "Create New Game"
+3. Выбери шаблон "Baseplate" (пустая карта)
+4. Нажми "Play" чтобы запустить, "Stop" чтобы остановить
+
+## Где писать код
+
+В левой части экрана — окно Explorer (Проводник). Там видно всё что есть в игре.
+
+Чтобы создать скрипт:
+1. Наведи на "ServerScriptService" (серверные скрипты)
+2. Нажми +
+3. Выбери "Script"
+4. Появится окно с кодом
+
+## Твой первый скрипт
+
+Удали всё что там написано и вставь:
+
+print("Привет, Roblox!")
+print("Мой первый скрипт работает!")
+
+Нажми Play. В нижнем окне (Output) увидишь:
+Привет, Roblox!
+Мой первый скрипт работает!
+
+## Создание объекта из кода
+
+Можно создавать объекты прямо из скрипта:
+
+-- Создаём куб
+local part = Instance.new("Part")  -- создаём деталь
+part.Position = Vector3.new(0, 10, 0)  -- позиция (X, Y, Z)
+part.Size = Vector3.new(5, 2, 5)  -- размер
+part.Color = Color3.fromRGB(255, 0, 0)  -- красный цвет
+part.Parent = workspace  -- помещаем в мир
+
+Запусти и увидишь красный блок в воздухе!
+
+## Что здесь что
+
+Instance.new("Part") — создать новую деталь типа Part
+.Position — где будет находиться (Vector3 это X, Y, Z)
+.Size — размер детали
+.Color — цвет (RGB: красный, зелёный, синий от 0 до 255)
+.Parent — куда поместить (workspace = игровой мир)
+
+## Меняем материал
+
+part.Material = Enum.Material.Glass  -- стекло
+part.Material = Enum.Material.Wood   -- дерево
+part.Material = Enum.Material.Metal  -- металл
+
+## Меняем прозрачность
+
+part.Transparency = 0.5  -- 0 = видимая, 1 = невидимая
+part.Transparency = 0    -- обратно видимая
+
+## Создаём сферу
+
+local sphere = Instance.new("Part")
+sphere.Shape = Enum.PartType.Ball  -- делаем сферой
+sphere.Position = Vector3.new(10, 10, 0)
+sphere.Size = Vector3.new(5, 5, 5)
+sphere.Color = Color3.fromRGB(0, 0, 255)  -- синий
+sphere.Parent = workspace
+
+## Создаём несколько объектов циклом
+
+for i = 1, 10 do
+    local cube = Instance.new("Part")
+    cube.Position = Vector3.new(i * 5, 5, 0)  -- в ряд
+    cube.Size = Vector3.new(3, 3, 3)
+    cube.Color = Color3.fromRGB(i * 25, 100, 200)
+    cube.Parent = workspace
+end
+
+Получится ряд из 10 разноцветных кубов!
+
+## Лестница из блоков
+
+for i = 1, 10 do
+    local step = Instance.new("Part")
+    step.Position = Vector3.new(i * 3, i * 2, 0)
+    step.Size = Vector3.new(3, 1, 5)
+    step.Parent = workspace
+end
+
+## Разные формы
+
+Enum.PartType.Ball — сфера
+Enum.PartType.Cylinder — цилиндр
+Enum.PartType.Block — куб (по умолчанию)
+
+## Зачем нужен ServerScriptService
+
+Скрипты в ServerScriptService выполняются на сервере. Это значит:
+- Все игроки видят результат
+- Скрипт работает даже когда никто не играет
+- Безопасно (клиент не может сломать)
+
+Скрипты в других местах работают по-разному (узнаем позже).
+
+## Как найти объект в мире
+
+Можно искать существующие объекты по имени:
+
+local myPart = workspace:FindFirstChild("SomePart")
+if myPart then
+    myPart.Color = Color3.fromRGB(0, 255, 0)  -- зелёный
+end
+
+## Удаление объекта
+
+local part = workspace:FindFirstChild("SomePart")
+if part then
+    part:Destroy()  -- удалить навсегда
+end
+
+## Ожидание (задержка)
+
+wait(2)  -- подождать 2 секунды
+print("Прошло 2 секунды!")
+
+Пример с анимацией:
+
+local part = Instance.new("Part")
+part.Position = Vector3.new(0, 20, 0)
+part.Parent = workspace
+
+for i = 1, 10 do
+    part.Position = part.Position - Vector3.new(0, 2, 0)  -- падает вниз
+    wait(0.5)  -- ждём полсекунды
+end
+
+## Сервисы Roblox
+
+Самые важные сервисы:
+
+local Players = game:GetService("Players")  -- игроки
+local Workspace = game:GetService("Workspace")  -- мир
+local ReplicatedStorage = game:GetService("ReplicatedStorage")  -- общее хранилище
+local ServerStorage = game:GetService("ServerStorage")  -- серверное хранилище
+local Lighting = game:GetService("Lighting")  -- освещение
+
+## Меняем время суток
+
+local Lighting = game:GetService("Lighting")
+Lighting.TimeOfDay = "12:00:00"  -- полдень
+Lighting.TimeOfDay = "00:00:00"  -- полночь
+
+## Меняем гравитацию
+
+workspace.Gravity = 50  -- слабая гравитация (обычно 196)
+workspace.Gravity = 196  -- обратно нормальная
+
+## Частые ошибки
+
+Ошибка 1: забыл Parent
+local part = Instance.new("Part")
+-- ОШИБКА! Объект создан но не помещён в мир
+part.Parent = workspace  -- ПРАВИЛЬНО
+
+Ошибка 2: синтаксис Vector3
+part.Position = (0, 10, 0)  -- ОШИБКА!
+part.Position = Vector3.new(0, 10, 0)  -- ПРАВИЛЬНО
+
+Ошибка 3: забыл скобки new()
+local part = Instance.new("Part")  -- ПРАВИЛЬНО
+local part = Instance.new "Part"   -- может работать, но лучше со скобками
+
+Ошибка 4: опечатка в имени сервиса
+game:GetService("Workspace")  -- ПРАВИЛЬНО
+game:GetService("WorkSpace")  -- ОШИБКА! Чувствительно к регистру
+
+## Задания для практики
+
+Задание 1
+Создай 5 разноцветных кубов в ряд.
+
+Задание 2
+Создай пирамиду из блоков (каждый следующий уровень меньше).
+
+Задание 3
+Создай сферу которая падает с неба и исчезает при касании земли.
+
+Задание 4
+Сделай день и ночь: меняй TimeOfDay каждые 2 секунды.
+
+Задание 5
+Создай 20 случайно разбросанных блоков разного цвета и размера.
+
+## Готовый код для запуска
+
+-- Урок 6: Первый скрипт в Roblox
+-- Вставь в ServerScriptService → Script
+
+print("========== УРОК 6: ROBLOX ==========")
+
+-- Создаём один куб
+print("Создаю красный куб...")
+local part = Instance.new("Part")
+part.Position = Vector3.new(0, 10, 0)
+part.Size = Vector3.new(5, 2, 5)
+part.Color = Color3.fromRGB(255, 0, 0)
+part.Material = Enum.Material.Metal
+part.Parent = workspace
+
+wait(1)  -- подождать секунду
+
+-- Создаём сферу
+print("Создаю синюю сферу...")
+local sphere = Instance.new("Part")
+sphere.Shape = Enum.PartType.Ball
+sphere.Position = Vector3.new(10, 10, 0)
+sphere.Size = Vector3.new(5, 5, 5)
+sphere.Color = Color3.fromRGB(0, 0, 255)
+sphere.Parent = workspace
+
+wait(1)
+
+-- Создаём ряд из 5 кубов
+print("Создаю ряд кубов...")
+for i = 1, 5 do
+    local cube = Instance.new("Part")
+    cube.Position = Vector3.new(i * 5, 3, 5)
+    cube.Size = Vector3.new(3, 3, 3)
+    cube.Color = Color3.fromRGB(i * 50, 100, 200 - i * 30)
+    cube.Parent = workspace
+end
+
+wait(1)
+
+-- Меняем время суток
+print("Меняю время суток...")
+local Lighting = game:GetService("Lighting")
+Lighting.TimeOfDay = "20:00:00"  -- вечер
+
+wait(1)
+
+-- Гравитация
+print("Меняю гравитацию...")
+workspace.Gravity = 50  -- слабая гравитация
+
+wait(2)
+
+print("========== КОНЕЦ УРОКА 6 ==========")
