@@ -1,0 +1,318 @@
+# Урок 10: GUI — интерфейс для игрока
+
+## Что такое GUI?
+
+GUI (Graphical User Interface) — это всё что игрок видит на экране кроме игрового мира: кнопки, меню, полоски здоровья, инвентарь, чат.
+
+GUI создаётся через LocalScript в StarterGui. У каждого игрока свой GUI, и он видит только свой.
+
+## Главные элементы GUI
+
+ScreenGui — контейнер для всего GUI (как лист бумаги)
+Frame — прямоугольная область (как коробка)
+TextLabel — текст
+TextButton — кнопка с текстом
+ImageLabel — картинка
+TextBox — поле для ввода текста
+ScrollingFrame — прокручиваемая область
+
+## Создание простого GUI
+
+В StarterGui создай LocalScript:
+
+-- Создаём контейнер
+local gui = Instance.new("ScreenGui")
+gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Создаём кнопку
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 200, 0, 50)   -- ширина 200, высота 50
+button.Position = UDim2.new(0.5, -100, 0.5, -25)  -- по центру
+button.Text = "Нажми меня!"
+button.Parent = gui
+
+-- Обработчик нажатия
+button.MouseButton1Click:Connect(function()
+    print("Кнопка нажата!")
+end)
+
+## UDim2 — позиция и размер
+
+UDim2.new(scaleX, offsetX, scaleY, offsetY)
+
+scale — доля экрана (0 = слева/сверху, 1 = справа/снизу)
+offset — пиксели
+
+Примеры:
+
+-- По центру экрана
+UDim2.new(0.5, -100, 0.5, -25)  -- половина экрана минус половина ширины
+
+-- В левом верхнем углу
+UDim2.new(0, 10, 0, 10)  -- 10 пикселей от левого края, 10 от верхнего
+
+-- На весь экран
+UDim2.new(1, 0, 1, 0)
+
+-- Внизу по центру
+UDim2.new(0.5, -100, 1, -60)  -- половина ширины, снизу 60 пикселей
+
+## Текст (TextLabel)
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(0, 300, 0, 30)
+label.Position = UDim2.new(0.5, -150, 0.1, 0)
+label.Text = "Добро пожаловать!"
+label.TextColor3 = Color3.fromRGB(255, 255, 255)  -- белый
+label.TextSize = 24  -- размер шрифта
+label.Font = Enum.Font.GothamBold  -- жирный шрифт
+label.BackgroundTransparency = 1  -- прозрачный фон
+label.Parent = gui
+
+## Изменение текста из скрипта
+
+local coins = 0
+local label = Instance.new("TextLabel")
+label.Parent = gui
+-- ... настройки ...
+
+button.MouseButton1Click:Connect(function()
+    coins = coins + 1
+    label.Text = "Монет: " .. coins
+end)
+
+## Полоска здоровья (Frame)
+
+local healthBar = Instance.new("Frame")
+healthBar.Size = UDim2.new(0, 200, 0, 20)
+healthBar.Position = UDim2.new(0, 10, 0, 10)
+healthBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- красный
+healthBar.Parent = gui
+
+-- Меняем размер при получении урона
+local health = 100
+healthBar.Size = UDim2.new(health / 100, 0, 0, 20)  -- пропорционально здоровью
+
+## Поле ввода (TextBox)
+
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(0, 200, 0, 30)
+textBox.Position = UDim2.new(0.5, -100, 0.5, 0)
+textBox.PlaceholderText = "Введи что-нибудь..."
+textBox.Text = ""
+textBox.Parent = gui
+
+-- Когда игрок нажимает Enter
+textBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        print("Игрок ввёл: " .. textBox.Text)
+    end
+end)
+
+## Картинка (ImageLabel)
+
+Сначала загрузи картинку в Roblox (вкладка Images).
+
+local image = Instance.new("ImageLabel")
+image.Size = UDim2.new(0, 100, 0, 100)
+image.Position = UDim2.new(0.5, -50, 0.5, -50)
+image.Image = "rbxassetid://123456789"  -- ID загруженной картинки
+image.Parent = gui
+
+## Прокручиваемая область (ScrollingFrame)
+
+Полезно для длинных списков (инвентарь, чат):
+
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(0, 300, 0, 400)
+scrollFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 800)  -- высота содержимого
+scrollFrame.ScrollBarThickness = 5
+scrollFrame.Parent = gui
+
+-- Добавляем элементы внутрь
+for i = 1, 20 do
+    local item = Instance.new("TextLabel")
+    item.Size = UDim2.new(1, -10, 0, 30)
+    item.Position = UDim2.new(0, 5, 0, (i-1) * 35)
+    item.Text = "Предмет " .. i
+    item.Parent = scrollFrame
+end
+
+## Красивые кнопки
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0.5, -100, 0.5, -25)
+button.Text = "Кнопка"
+button.BackgroundColor3 = Color3.fromRGB(0, 150, 255)  -- синий
+button.TextColor3 = Color3.fromRGB(255, 255, 255)  -- белый текст
+button.Font = Enum.Font.GothamBold
+button.TextSize = 18
+button.Parent = gui
+
+-- Скругление углов
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)  -- радиус 10 пикселей
+corner.Parent = button
+
+-- Обводка
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(255, 255, 255)
+stroke.Thickness = 2
+stroke.Parent = button
+
+-- Эффект при наведении
+button.MouseEnter:Connect(function()
+    button.BackgroundColor3 = Color3.fromRGB(0, 200, 255)  -- светлее
+end)
+
+button.MouseLeave:Connect(function()
+    button.BackgroundColor3 = Color3.fromRGB(0, 150, 255)  -- обратно
+end)
+
+## Прозрачность и видимость
+
+local frame = Instance.new("Frame")
+frame.BackgroundTransparency = 0.5  -- полупрозрачный
+frame.Visible = true  -- видимый
+frame.Visible = false  -- скрыть
+
+## Открыть/закрыть меню
+
+local menu = Instance.new("Frame")
+menu.Size = UDim2.new(0, 300, 0, 400)
+menu.Position = UDim2.new(0.5, -150, 0.5, -200)
+menu.Visible = false  -- скрыто по умолчанию
+menu.Parent = gui
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Text = "Меню"
+toggleButton.Parent = gui
+-- ... размер и позиция ...
+
+toggleButton.MouseButton1Click:Connect(function()
+    menu.Visible = not menu.Visible  -- переключаем
+end)
+
+## Анимация (Tween)
+
+Плавное перемещение и изменение размера:
+
+local TweenService = game:GetService("TweenService")
+
+local frame = Instance.new("Frame")
+-- ... настройки ...
+
+local goal = {Position = UDim2.new(0.5, -100, 0.5, -100)}  -- куда двигать
+local info = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)  -- 1 секунда
+local tween = TweenService:Create(frame, info, goal)
+tween:Play()
+
+## Полный пример: окно с монетами
+
+Скопируй в StarterGui → LocalScript:
+
+local gui = Instance.new("ScreenGui")
+gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Задний фон
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 200)
+frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
+
+-- Заголовок
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 10)
+title.Text = "Мой кошелёк"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.BackgroundTransparency = 1
+title.Parent = frame
+
+-- Счётчик монет
+local coinsLabel = Instance.new("TextLabel")
+coinsLabel.Size = UDim2.new(1, 0, 0, 30)
+coinsLabel.Position = UDim2.new(0, 0, 0, 50)
+coinsLabel.Text = "Монет: 0"
+coinsLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+coinsLabel.TextSize = 18
+coinsLabel.BackgroundTransparency = 1
+coinsLabel.Parent = frame
+
+-- Кнопка
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 150, 0, 40)
+button.Position = UDim2.new(0.5, -75, 0, 100)
+button.Text = "Получить +1"
+button.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Font = Enum.Font.GothamBold
+button.Parent = frame
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(0, 8)
+btnCorner.Parent = button
+
+local coins = 0
+
+button.MouseButton1Click:Connect(function()
+    coins = coins + 1
+    coinsLabel.Text = "Монет: " .. coins
+end)
+
+## Частые ошибки
+
+Ошибка 1: забыл Parent
+local button = Instance.new("TextButton")
+-- ОШИБКА! Кнопка создана но не показана
+button.Parent = gui  -- ПРАВИЛЬНО
+
+Ошибка 2: GUI в ServerScript
+GUI работает ТОЛЬКО в LocalScript! Сервер не может создавать интерфейс для игрока.
+
+Ошибка 3: UDim2 без new
+button.Size = UDim2(0, 200, 0, 50)  -- ОШИБКА!
+button.Size = UDim2.new(0, 200, 0, 50)  -- ПРАВИЛЬНО
+
+Ошибка 4: не WaitForChild
+game.Players.LocalPlayer.PlayerGui  -- может сработать слишком рано
+game.Players.LocalPlayer:WaitForChild("PlayerGui")  -- ПРАВИЛЬНО
+
+## Задания для практики
+
+Задание 1
+Создай окно с твоим именем по центру экрана.
+
+Задание 2
+Сделай счётчик кликов: кнопка и текст который обновляется.
+
+Задание 3
+Сделай меню которое открывается и закрывается по кнопке.
+
+Задание 4
+Сделай полоску здоровья которая уменьшается при клике на кнопку "Получить урон".
+
+Задание 5
+Сделай список предметов в ScrollingFrame (5-10 предметов).
+
+## Что дальше
+
+Поздравляю! Ты прошёл все 10 уроков базового Lua и Roblox!
+
+Теперь ты можешь:
+- Писать скрипты
+- Создавать GUI
+- Работать с сервером и клиентом
+- Сохранять данные игроков
+- Делать игры!
+
+Дальше: практика, практика и ещё раз практика. Выбери идею для простой игры и начни делать!
