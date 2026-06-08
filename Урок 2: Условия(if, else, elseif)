@@ -1,0 +1,339 @@
+# Урок 2: Условия (if, else, elseif)
+
+## Что такое условие?
+
+Условие — это когда компьютер принимает решение. Как в жизни: ЕСЛИ на улице дождь, ТО берём зонт, ИНАЧЕ идём так.
+
+В Lua это пишется так:
+
+if на_улице_дождь then
+    print("Берём зонт")
+else
+    print("Идём так")
+end
+
+## Как работают условия
+
+Компьютер проверяет что находится между if и then.
+Если проверка верна (true) — выполняет код после then.
+Если проверка не верна (false) — выполняет код после else.
+
+Обязательная структура:
+
+if условие then
+    -- код если условие верно
+else
+    -- код если условие не верно
+end
+
+end ОБЯЗАТЕЛЬНО в конце! Без него будет ошибка.
+
+## Знаки сравнения
+
+Вот как сравнивать значения:
+
+==  — равно
+~=  — не равно
+>   — больше
+<   — меньше
+>=  — больше или равно
+<=  — меньше или равно
+
+Примеры:
+
+local age = 18
+
+if age >= 18 then
+    print("Можно водить машину")
+else
+    print("Ещё рано")
+end
+
+local password = "1234"
+
+if password == "1234" then
+    print("Доступ открыт")
+else
+    print("Неверный пароль")
+end
+
+## Важно про == и =
+
+=  — одно равно: ПРИСВОИТЬ значение
+== — два равно: ПРОВЕРИТЬ что равно
+
+Частая ошибка новичков:
+
+if x = 10 then  -- ОШИБКА! Должно быть ==
+if x == 10 then -- ПРАВИЛЬНО
+
+## elseif — несколько проверок
+
+Если нужно проверить несколько условий подряд, используй elseif:
+
+local temperature = 25
+
+if temperature > 30 then
+    print("Жарко!")
+elseif temperature > 20 then
+    print("Тепло")
+elseif temperature > 10 then
+    print("Прохладно")
+else
+    print("Холодно!")
+end
+
+Как это работает:
+
+1. temperature > 30? Нет (25 меньше 30) → идём дальше
+2. temperature > 20? Да (25 больше 20) → "Тепло"
+3. Дальше не проверяем!
+
+Важно: elseif срабатывает только если предыдущие проверки не прошли.
+
+Ещё пример с оценками:
+
+local grade = 85
+
+if grade >= 90 then
+    print("Отлично!")
+elseif grade >= 75 then
+    print("Хорошо")
+elseif grade >= 60 then
+    print("Удовлетворительно")
+else
+    print("Надо подучить")
+end
+
+## and — и (оба условия должны быть верны)
+
+local age = 20
+local hasLicense = true
+
+if age >= 18 and hasLicense == true then
+    print("Можно за руль")
+else
+    print("Нельзя за руль")
+end
+
+Оба условия должны быть true. Если хоть одно false — всё условие false.
+
+## or — или (хотя бы одно условие верно)
+
+local hasKey = false
+local knowsCode = true
+
+if hasKey == true or knowsCode == true then
+    print("Дверь открыта")
+else
+    print("Дверь закрыта")
+end
+
+Хотя бы одно условие должно быть true.
+
+## not — не (переворачивает значение)
+
+local isRaining = false
+
+if not isRaining then
+    print("Дождя нет, идём гулять")
+else
+    print("Дождь, сидим дома")
+end
+
+not превращает true в false, а false в true.
+
+## Вложенные условия
+
+Можно делать условие внутри другого условия:
+
+local time = 14
+local isWeekend = true
+
+if isWeekend then
+    if time < 12 then
+        print("Спим дальше")
+    else
+        print("Пошли гулять")
+    end
+else
+    print("На учёбу")
+end
+
+Каждому if нужен свой end.
+
+## Проверка чётности
+
+Используем % (остаток от деления) чтобы проверить чётное ли число:
+
+local number = 7
+
+if number % 2 == 0 then
+    print("Чётное")
+else
+    print("Нечётное")
+end
+
+Если число делится на 2 без остатка — оно чётное.
+
+## Проверка кратности
+
+Можно проверить делится ли число на любое другое:
+
+local number = 15
+
+if number % 5 == 0 then
+    print("Делится на 5")
+else
+    print("Не делится на 5")
+end
+
+if number % 3 == 0 then
+    print("Делится на 3")
+end
+
+## Булевы переменные в условиях
+
+Если переменная уже true или false, можно писать короче:
+
+local isAdmin = true
+
+if isAdmin then         -- то же что: if isAdmin == true then
+    print("Доступ разрешён")
+end
+
+if not isAdmin then     -- то же что: if isAdmin == false then
+    print("Доступ запрещён")
+end
+
+## Частые ошибки
+
+Ошибка 1: забыл then
+if x > 5       -- ОШИБКА!
+if x > 5 then  -- ПРАВИЛЬНО
+
+Ошибка 2: забыл end
+if x > 5 then
+    print("Да")
+-- ОШИБКА! Нет end
+
+Ошибка 3: перепутал = и ==
+if x = 5 then   -- ОШИБКА!
+if x == 5 then  -- ПРАВИЛЬНО
+
+Ошибка 4: лишний else
+if x > 5 then
+    print("Да")
+else            -- первый else
+else            -- ОШИБКА! Второй else
+end
+
+Можно только ОДИН else после if.
+
+## Задания для практики
+
+Задание 1
+Проверь число. Если оно больше 100 — выведи "Большое", если от 50 до 100 — "Среднее", если меньше 50 — "Маленькое".
+
+Задание 2
+Проверь возраст. Если меньше 7 — "Дошкольник", 7-17 — "Школьник", 18-21 — "Студент", больше 21 — "Взрослый".
+
+Задание 3
+Проверь число на чётность и выведи результат.
+
+Задание 4
+Проверь делится ли число на 3 и на 5 одновременно (используй and).
+
+Задание 5
+Проверь температуру: меньше 0 — "Мороз", 0-15 — "Холодно", 15-25 — "Тепло", 25-35 — "Жарко", больше 35 — "Пекло".
+
+## Готовый код для запуска
+
+Скопируй этот код в Roblox Studio и запусти:
+
+-- Урок 2: Условия
+
+print("========== УРОК 2: УСЛОВИЯ ==========")
+print("")
+
+-- Простое условие
+local age = 20
+print("Возраст: " .. age)
+if age >= 18 then
+    print("Можно водить машину")
+else
+    print("Ещё рано")
+end
+print("")
+
+-- Проверка пароля
+local password = "1234"
+print("Пароль: " .. password)
+if password == "1234" then
+    print("Доступ открыт")
+else
+    print("Неверный пароль")
+end
+print("")
+
+-- elseif
+local temperature = 25
+print("Температура: " .. temperature)
+if temperature > 30 then
+    print("Жарко!")
+elseif temperature > 20 then
+    print("Тепло")
+elseif temperature > 10 then
+    print("Прохладно")
+else
+    print("Холодно!")
+end
+print("")
+
+-- and
+local hasKey = true
+local knowsCode = false
+print("Ключ: " .. tostring(hasKey) .. ", Код: " .. tostring(knowsCode))
+if hasKey or knowsCode then
+    print("Дверь открыта")
+else
+    print("Дверь закрыта")
+end
+print("")
+
+-- Проверка чётности
+local number = 7
+print("Число: " .. number)
+if number % 2 == 0 then
+    print("Чётное")
+else
+    print("Нечётное")
+end
+print("")
+
+-- Проверка делимости
+local num = 15
+print("Число: " .. num)
+if num % 3 == 0 and num % 5 == 0 then
+    print("Делится на 3 и на 5!")
+else
+    print("Не делится на 3 и 5 одновременно")
+end
+print("")
+
+-- Вложенные условия
+local time = 14
+local isWeekend = true
+print("Время: " .. time .. ", Выходной: " .. tostring(isWeekend))
+if isWeekend then
+    if time < 12 then
+        print("Спим дальше")
+    else
+        print("Пошли гулять")
+    end
+else
+    print("На учёбу")
+end
+
+print("")
+print("========== КОНЕЦ УРОКА 2 ==========")
