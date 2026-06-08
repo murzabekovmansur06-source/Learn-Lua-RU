@@ -1,0 +1,323 @@
+# Урок 5: Таблицы
+
+## Что такое таблица?
+
+Таблица — это одна переменная, в которой можно хранить много значений. Как коробка с отделениями.
+
+В других языках это называется "массив" или "список", но в Lua всё это — таблицы.
+
+## Таблица-список (массив)
+
+Простой список значений, доступ по номерам (начиная с 1):
+
+local fruits = {"Яблоко", "Банан", "Апельсин", "Груша"}
+
+print(fruits[1])  -- Яблоко (первый элемент)
+print(fruits[2])  -- Банан (второй элемент)
+print(fruits[3])  -- Апельсин (третий элемент)
+print(fruits[4])  -- Груша (четвёртый элемент)
+
+Важно: в Lua отсчёт начинается с 1, не с 0 как в других языках!
+
+## Добавить элемент в таблицу
+
+Используй table.insert():
+
+local items = {"Меч", "Щит"}
+table.insert(items, "Зелье")  -- добавляем в конец
+print(items[3])  -- Зелье
+
+Можно вставить в конкретное место:
+
+table.insert(items, 2, "Лук")  -- вставить на позицию 2
+-- теперь items = {"Меч", "Лук", "Щит", "Зелье"}
+
+## Удалить элемент
+
+Используй table.remove():
+
+local items = {"Меч", "Щит", "Зелье"}
+table.remove(items, 2)  -- удалить второй элемент
+-- теперь items = {"Меч", "Зелье"}
+
+## Узнать размер таблицы
+
+Знак # показывает сколько элементов:
+
+local items = {"Меч", "Щит", "Зелье"}
+print(#items)  -- 3
+
+Очень полезно для циклов:
+
+for i = 1, #items do
+    print(i .. ": " .. items[i])
+end
+
+Результат:
+1: Меч
+2: Щит
+3: Зелье
+
+## Таблица-словарь (ключ-значение)
+
+Можно давать элементам имена вместо номеров:
+
+local player = {
+    name = "Алекс",
+    health = 100,
+    coins = 500,
+    level = 15
+}
+
+print(player.name)     -- Алекс
+print(player.health)   -- 100
+print(player.coins)    -- 500
+
+-- Можно менять значения:
+player.health = 80
+player.coins = player.coins + 200
+
+print(player.health)   -- 80
+print(player.coins)    -- 700
+
+-- Можно добавлять новые ключи:
+player.mana = 50
+print(player.mana)     -- 50
+
+Два способа доступа (одинаково работают):
+player.health    -- через точку
+player["health"] -- через скобки
+
+Второй способ удобен когда ключ хранится в переменной:
+
+local key = "coins"
+print(player[key])  -- 700
+
+## Смешанные таблицы
+
+Можно комбинировать список и словарь:
+
+local game = {
+    name = "Моя игра",
+    players = 10,
+    items = {"Меч", "Щит", "Зелье"}  -- таблица внутри таблицы!
+}
+
+print(game.name)        -- Моя игра
+print(game.items[1])    -- Меч (обращение к вложенной таблице)
+print(game.items[2])    -- Щит
+
+## Таблица внутри таблицы
+
+Можно хранить данные о нескольких игроках:
+
+local players = {
+    {name = "Алекс", score = 100},
+    {name = "Мария", score = 250},
+    {name = "Олег", score = 75}
+}
+
+print(players[1].name)   -- Алекс
+print(players[2].score)  -- 250
+
+for i = 1, #players do
+    print(players[i].name .. ": " .. players[i].score)
+end
+
+Результат:
+Алекс: 100
+Мария: 250
+Олег: 75
+
+## Цикл по словарю (pairs)
+
+Для таблиц-словарей используй pairs:
+
+local player = {name = "Алекс", health = 100, coins = 500}
+
+for key, value in pairs(player) do
+    print(key .. " = " .. value)
+end
+
+Результат (порядок может быть любым):
+name = Алекс
+health = 100
+coins = 500
+
+## Цикл по списку (ipairs)
+
+Для таблиц-списков используй ipairs (гарантирует порядок с 1):
+
+local items = {"Меч", "Щит", "Зелье"}
+
+for index, value in ipairs(items) do
+    print(index .. ": " .. value)
+end
+
+Результат:
+1: Меч
+2: Щит
+3: Зелье
+
+## Поиск в таблице
+
+Проверить есть ли элемент:
+
+local items = {"Меч", "Щит", "Зелье"}
+
+local function hasItem(list, item)
+    for i = 1, #list do
+        if list[i] == item then
+            return true
+        end
+    end
+    return false
+end
+
+print(hasItem(items, "Меч"))    -- true
+print(hasItem(items, "Посох"))  -- false
+
+## Подсчёт суммы в таблице
+
+local scores = {100, 250, 75, 300, 50}
+local total = 0
+
+for i = 1, #scores do
+    total = total + scores[i]
+end
+
+print("Общий счёт: " .. total)  -- 775
+
+## Пустая таблица
+
+Можно создать пустую таблицу и заполнять позже:
+
+local inventory = {}  -- пустая таблица
+
+table.insert(inventory, "Меч")
+table.insert(inventory, "Щит")
+
+print(#inventory)  -- 2
+
+## Частые ошибки
+
+Ошибка 1: отсчёт с 0
+local items = {"A", "B", "C"}
+print(items[0])  -- nil! В Lua отсчёт с 1
+print(items[1])  -- "A" — ПРАВИЛЬНО
+
+Ошибка 2: запятая вместо точки
+print(player.name)   -- ПРАВИЛЬНО
+print(player,name)   -- ОШИБКА!
+
+Ошибка 3: забыл кавычки у ключа
+local p = {name = "Алекс"}  -- ПРАВИЛЬНО
+local p = {name = Алекс}    -- ОШИБКА! Алекс без кавычек — переменная
+
+Ошибка 4: путаю ipairs и pairs
+-- ipairs — для списков (индексы 1, 2, 3)
+-- pairs — для словарей (любые ключи)
+
+## Задания для практики
+
+Задание 1
+Создай таблицу из 5 любимых игр. Выведи их через цикл с номерами.
+
+Задание 2
+Создай таблицу-словарь с информацией о персонаже: name, health, mana, level. Выведи всё через pairs.
+
+Задание 3
+Создай таблицу с числами (10, 20, 30, 40, 50). Посчитай сумму и среднее значение.
+
+Задание 4
+Создай таблицу игроков (каждый игрок — это таблица с name и score). Найди игрока с максимальным счётом.
+
+Задание 5
+Создай таблицу с предметами. Напиши функцию которая проверяет есть ли предмет в таблице.
+
+Задание 6
+Создай таблицу из 10 случайных чисел. Найди самое большое и самое маленькое.
+
+## Готовый код для запуска
+
+Скопируй в Roblox Studio:
+
+-- Урок 5: Таблицы
+
+print("========== УРОК 5: ТАБЛИЦЫ ==========")
+print("")
+
+-- Таблица-список
+print("Таблица-список:")
+local fruits = {"Яблоко", "Банан", "Апельсин"}
+for i = 1, #fruits do
+    print(i .. ": " .. fruits[i])
+end
+print("")
+
+-- Добавление и удаление
+print("Добавление и удаление:")
+local items = {"Меч", "Щит"}
+print("Было: " .. #items)
+table.insert(items, "Зелье")
+print("Стало: " .. #items)
+print(items[3])
+print("")
+
+-- Таблица-словарь
+print("Таблица-словарь:")
+local player = {
+    name = "Алекс",
+    health = 100,
+    coins = 500
+}
+print(player.name .. " имеет " .. player.coins .. " монет")
+player.health = 80
+print("Здоровье после боя: " .. player.health)
+print("")
+
+-- pairs
+print("pairs:")
+for key, value in pairs(player) do
+    print(key .. " = " .. tostring(value))
+end
+print("")
+
+-- Таблица внутри таблицы
+print("Игроки:")
+local players = {
+    {name = "Алекс", score = 100},
+    {name = "Мария", score = 250},
+    {name = "Олег", score = 75}
+}
+for i = 1, #players do
+    print(players[i].name .. ": " .. players[i].score)
+end
+print("")
+
+-- Поиск
+print("Поиск:")
+local function hasItem(list, item)
+    for i = 1, #list do
+        if list[i] == item then
+            return true
+        end
+    end
+    return false
+end
+print("Есть Меч? " .. tostring(hasItem(items, "Меч")))
+print("Есть Посох? " .. tostring(hasItem(items, "Посох")))
+print("")
+
+-- Сумма
+print("Сумма:")
+local numbers = {10, 20, 30, 40, 50}
+local total = 0
+for i = 1, #numbers do
+    total = total + numbers[i]
+end
+print("Сумма: " .. total)
+print("Среднее: " .. (total / #numbers))
+
+print("")
+print("========== КОНЕЦ УРОКА 5 ==========")
