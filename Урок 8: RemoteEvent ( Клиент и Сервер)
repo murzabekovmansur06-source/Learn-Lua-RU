@@ -1,0 +1,245 @@
+# Урок 8: RemoteEvent (Клиент и Сервер)
+
+## Зачем нужны RemoteEvent?
+
+В Roblox есть два типа скриптов:
+- ServerScript (на сервере) — общий для всех, безопасный
+- LocalScript (на клиенте) — у каждого игрока свой, для GUI и эффектов
+
+Но они не могут общаться напрямую. Сервер не видит что происходит на экране игрока. Клиент не может менять мир для всех.
+
+RemoteEvent — это мост между ними. Клиент отправляет запрос серверу, сервер обрабатывает и отвечает.
+
+## Как это работает
+
+1. Создаёшь RemoteEvent в ReplicatedStorage (общее хранилище)
+2. Сервер подписывается на OnServerEvent (ждёт запросы от клиентов)
+3. Клиент вызывает FireServer (отправляет запрос)
+
+Клиент отправляет запрос → Сервер получает и обрабатывает → Сервер может ответить клиенту
+
+## Создание RemoteEvent
+
+В ReplicatedStorage создай RemoteEvent:
+
+1. В Explorer найди ReplicatedStorage
+2. Нажми + → RemoteEvent
+3. Назови его "GiveCoins"
+
+## Серверный скрипт (в ServerScriptService)
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("GiveCoins")
+
+if not remoteEvent then
+    print("RemoteEvent не найден!")
+    return
+end
+
+remoteEvent.OnServerEvent:Connect(function(player, amount)
+    print(player.Name .. " запросил " .. amount .. " монет")
+    -- Выдаём монеты (пока что просто выводим)
+end)
+
+## Клиентский скрипт (LocalScript в StarterGui)
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("GiveCoins")
+
+-- Отправляем запрос
+remoteEvent:FireServer(100)  -- запросить 100 монет
+
+Когда запустишь — сервер увидит сообщение.
+
+## Важные правила
+
+1. RemoteEvent должен быть в ReplicatedStorage (чтобы и сервер и клиент его видели)
+2. Сервер использует OnServerEvent — ждёт запросы
+3. Клиент использует FireServer — отправляет запрос
+4. Первый аргумент OnServerEvent ВСЕГДА player (кто отправил)
+5. Остальные аргументы — то что передал клиент
+
+## Передача нескольких аргументов
+
+Клиент:
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("BuyItem")
+remoteEvent:FireServer("Меч", 1, 500)  -- предмет, количество, цена
+
+Сервер:
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("BuyItem")
+
+remoteEvent.OnServerEvent:Connect(function(player, itemName, quantity, price)
+    print(player.Name .. " хочет купить " .. quantity .. "x " .. itemName .. " за " .. price)
+end)
+
+## Сервер → Клиент (обратное направление)
+
+Сервер тоже может отправлять данные клиенту через FireClient:
+
+Сервер:
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("Notification")
+
+remoteEvent:FireClient(player, "Поздравляем!", 500)
+
+Клиент:
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("Notification")
+
+remoteEvent.OnClientEvent:Connect(function(message, coins)
+    print(message)  -- "Поздравляем!"
+    print("Получено монет: " .. coins)
+end)
+
+## FireAllClients — отправить всем игрокам
+
+Сервер:
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("Announcement")
+remoteEvent:FireAllClients("Событие началось!")
+
+Клиент (у всех):
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("Announcement")
+
+remoteEvent.OnClientEvent:Connect(function(message)
+    print(message)  -- "Событие началось!"
+end)
+
+## Пример: кнопка выдачи монет (полный код)
+
+Создай в ReplicatedStorage RemoteEvent с именем "GiveCoins".
+
+Серверный скрипт (ServerScriptService):
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("GiveCoins")
+
+-- Таблица для хранения монет (временная)
+local playerCoins = {}
+
+remoteEvent.OnServerEvent:Connect(function(player, amount)
+    -- Если у игрока ещё нет записи — создаём
+    if not playerCoins[player.Name] then
+        playerCoins[player.Name] = 0
+    end
+    
+    -- Выдаём монеты
+    playerCoins[player.Name] = playerCoins[player.Name] + amount
+    
+    print(player.Name .. " получил " .. amount .. " монет. Всего: " .. playerCoins[player.Name])
+    
+    -- Отправляем обратно клиенту его баланс
+    remoteEvent:FireClient(player, playerCoins[player.Name])
+end)
+
+Клиентский скрипт (StarterGui → LocalScript):
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("GiveCoins")
+
+-- Создаём кнопку
+local gui = Instance.new("ScreenGui")
+gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 200, 0, 50)
+button.Position = UDim2.new(0.5, -100, 0.5, -25)
+button.Text = "Получить 100 монет"
+button.Parent = gui
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(0, 200, 0, 30)
+label.Position = UDim2.new(0.5, -100, 0.6, 0)
+label.Text = "Монет: 0"
+label.Parent = gui
+
+-- При нажатии отправляем запрос серверу
+button.MouseButton1Click:Connect(function()
+    remoteEvent:FireServer(100)
+end)
+
+-- Когда сервер отвечает — обновляем текст
+remoteEvent.OnClientEvent:Connect(function(totalCoins)
+    label.Text = "Монет: " .. totalCoins
+end)
+
+## RemoteFunction (для запросов с ответом)
+
+RemoteEvent — просто отправляет (как письмо).
+RemoteFunction — отправляет и ЖДЁТ ответа (как звонок).
+
+Клиент:
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteFunction = ReplicatedStorage:FindFirstChild("GetWeather")
+local result = remoteFunction:InvokeServer("Какая погода?")
+print("Сервер ответил: " .. result)
+
+Сервер:
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteFunction = ReplicatedStorage:FindFirstChild("GetWeather")
+
+remoteFunction.OnServerInvoke = function(player, question)
+    if question == "Какая погода?" then
+        return "Солнечно!"
+    end
+    return "Не знаю"
+end
+
+Важно: клиент ЗАМИРАЕТ пока сервер не ответит. Не используй для долгих операций.
+
+## Защита от читеров
+
+Всегда проверяй данные на сервере:
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remoteEvent = ReplicatedStorage:FindFirstChild("GiveCoins")
+
+remoteEvent.OnServerEvent:Connect(function(player, amount)
+    -- Читер может прислать миллион! Проверяем:
+    if amount > 1000 then
+        print(player.Name .. " пытался сжульничать!")
+        return  -- не выдаём
+    end
+    
+    if amount < 0 then
+        return  -- отрицательное число — точно читер
+    end
+    
+    -- Всё ок, выдаём
+end)
+
+## Частые ошибки
+
+Ошибка 1: RemoteEvent не в ReplicatedStorage
+RemoteEvent должен быть там где его видят и сервер и клиент.
+
+Ошибка 2: забыл player в OnServerEvent
+OnServerEvent ВСЕГДА первым аргументом получает player.
+
+Ошибка 3: FireServer в серверном скрипте
+FireServer можно вызывать ТОЛЬКО из LocalScript.
+
+Ошибка 4: OnServerEvent в LocalScript
+OnServerEvent работает ТОЛЬКО в серверном скрипте.
+
+## Задания для практики
+
+Задание 1
+Сделай RemoteEvent который при вызове выводит на сервере имя игрока и сообщение.
+
+Задание 2
+Сделай кнопку которая запрашивает у сервера случайное число и показывает его игроку.
+
+Задание 3
+Сделай систему: клиент отправляет серверу цвет, сервер меняет цвет куба в мире.
+
+Задание 4
+Сделай RemoteFunction который возвращает текущее время на сервере.
+
+Задание 5
+Сделай простой чат: клиент отправляет сообщение, сервер рассылает всем через FireAllClients.
+
+## Что дальше
+
+В уроке 9 ты узнаешь про DataStore — как сохранять прогресс игрока между сессиями.
